@@ -1,94 +1,52 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product } from 'src/entities/product.entity';
 import { IProduct } from 'src/interfaces';
+import { Repository } from 'typeorm';
+import { CreateProductsDTO } from './dto/create-products.dto';
+import { UpdateProductsDTO } from './dto/update-products.dto';
 
 @Injectable()
 export class ProductsService {
-  private products: IProduct[] = [
-    {
-      id: 1,
-      name: 'Laptop HP 14',
-      description: 'Portátil con 8GB RAM y 256GB SSD',
-      category: 'Tecnología',
-      price: 2500000,
-      stock: 12,
-    },
-    {
-      id: 2,
-      name: 'Silla ergonómica',
-      description: 'Silla de oficina ajustable con soporte lumbar',
-      category: 'Muebles',
-      price: 450000,
-      stock: 5,
-    },
-    {
-      id: 3,
-      name: 'Camiseta básica',
-      description: 'Camiseta algodón 100% talla M',
-      category: 'Ropa',
-      price: 35000,
-      stock: 30,
-    },
-    {
-      id: 4,
-      name: 'Mouse inalámbrico',
-      description: 'Mouse óptico con receptor USB',
-      category: 'Accesorios',
-      price: 55000,
-      stock: 0,
-    },
-    {
-      id: 5,
-      name: 'Botella de agua 1L',
-      description: 'Botella plástica reutilizable',
-      category: 'Hogar',
-      price: 12000,
-      stock: 50,
-    },
-  ];
 
+  constructor(@InjectRepository(Product)
+private productsRepo: Repository<Product>
+){}
+ 
   // devolver todos los productos
-  findAll(): IProduct[] {
-    return this.products;
+  findAll()  {
+    return this.productsRepo.find();
   }
 
-  // buscar por id o categoría (o ambos)
- findOne(id: number): IProduct {
-  const product = this.products.find((product) => product.id === id);
+  
+ async findOne(id: number){
 
-  if (!product) {
+  const productfind = await this.productsRepo.findOne({where: {id}})
+  if (!productfind) {
     throw new NotFoundException(`Producto con id ${id} no encontrado`);
   }
 
-  return product;
+  return productfind;
 }
 
-  create(product: Omit<IProduct, 'id'>): IProduct {
-    const newId =
-      this.products.length > 0
-        ? this.products[this.products.length - 1].id + 1
-        : 1;
-
-    const newProduct: IProduct = {
-      id: newId,
-      ...product,
-    };
-
-    this.products.push(newProduct);
-
-    return newProduct;
+  create(newproduct: CreateProductsDTO){
+    const productCreate = this.productsRepo.create(newproduct)
+    return this.productsRepo.save(productCreate)
+    
   }
 
-  update(id: number, newproducts: Omit<IProduct, 'id'>): IProduct{
-    const product = this.findOne(id); 
-    Object.assign(product,newproducts);
-    return product;
+  async update(id: number, updateproduct: UpdateProductsDTO){
+    await this.productsRepo.update(id, updateproduct)
+    return this.findOne(id)
+   
 
   }
 
-  remove(id: number){
-    const product = this.products.findIndex((product) => product.id === id);
-    this.products.splice(product, 1)
-    return{delete: true}
+  async remove(id: number){
+
+    const result = await this.productsRepo.delete(id)
+    if (result.affected === 0)throw new NotFoundException('Producto no encontrado')
+    return{messaje: `El producto con id ${id} fue eliminado`}
   
   }
 

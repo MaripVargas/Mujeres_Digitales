@@ -3,9 +3,9 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
-  MaxLength,
-  MinLength,
-  Min
+  Length,
+  Min,
+  Max
 } from 'class-validator';
 
 export class CreateUserDTO {
@@ -17,12 +17,12 @@ export class CreateUserDTO {
   email: string;
 
   @IsNotEmpty()
-  @MinLength(6)
-  @MaxLength(10)
+  @Length(6,10,{message: "La contrasena debe tener una longitud de minimo 6 caracteres y maximo 10"})
   password: string;
 
   @IsOptional()
   @IsInt()
-  @Min(0, { message: 'La edad debe ser mayor o igual a 0' })
+  @Min(18, { message: 'La edad debe ser mayor o igual a 18' })
+  @Max(70, {message: "sea realista"})
   age?: number;
 }

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Put, Delete, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { IProduct } from 'src/interfaces';
 import { CreateProductsDTO } from './dto/create-products.dto';
+import { JwtAuthGuard } from 'src/modules/auth/jwt.guard';
 
 @Controller('products')
 export class ProductsController {
@@ -20,19 +21,20 @@ export class ProductsController {
   }
 
   // POST: crear un nuevo producto
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() body: CreateProductsDTO) {
     return this.productsService.create(body);
   }
 
   // PUT: actualizar un producto existente
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id')id: string, @Body() body: Omit<IProduct, 'id'>){
 return this.productsService.update(Number(id),body)
   }
 
-
-  @Delete(':id')
+@UseGuards(JwtAuthGuard)  @Delete(':id')
   remove(@Param('id') id: string){
     return this.productsService.remove(Number(id))
   }
