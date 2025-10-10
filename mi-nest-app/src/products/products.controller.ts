@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Put, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  Put,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { IProduct } from 'src/interfaces';
 import { CreateProductsDTO } from './dto/create-products.dto';
 import { JwtAuthGuard } from 'src/modules/auth/jwt.guard';
+import { ParseUpperPipe } from 'src/common/pipes/parse-upper.pipe';
 
 @Controller('products')
 export class ProductsController {
@@ -20,6 +31,11 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @Get('by-name/:name') //La ruta es http://localhost:3000/products/by-name/perro
+  findByName(@Param('name', ParseUpperPipe) name: string) {
+    return this.productsService.findByName(name);
+  }
+
   // POST: crear un nuevo producto
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -30,14 +46,16 @@ export class ProductsController {
   // PUT: actualizar un producto existente
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  update(@Param('id')id: string, @Body() body: Omit<IProduct, 'id'>){
-return this.productsService.update(Number(id),body)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: Omit<IProduct, 'id'>,
+  ) {
+    return this.productsService.update(id, body);
   }
 
-@UseGuards(JwtAuthGuard)  @Delete(':id')
-  remove(@Param('id') id: string){
-    return this.productsService.remove(Number(id))
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.remove(id);
   }
-
-
 }
