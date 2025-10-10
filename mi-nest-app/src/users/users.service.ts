@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IUser } from 'src/interfaces';
+import * as bcrypt from 'bcrypt'
 import { Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
-import { UpdateUserDTO } from 'src/dto/update-user.dto';
+import { UpdateUserDTO } from "src/dto/update-user.dto";
 
 
 @Injectable()
@@ -33,7 +33,8 @@ export class UsersService {
 
 
   async update(id: number, updateuser: UpdateUserDTO){
-    await this.usersRepo.update(id, updateuser)
+    const hashedPassword = await bcrypt.hash(updateuser.password,10)
+    await this.usersRepo.update(id, {...updateuser,password:hashedPassword})
     return this.findOne(id);
 
   }
